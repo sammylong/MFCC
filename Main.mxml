@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               applicationComplete="init()">
+	<fx:Script>
+	<![CDATA[
+		import flash.media.Microphone;
+		import org.bytearray.micrecorder.*;
+		import org.bytearray.micrecorder.events.RecordingEvent;
+		import org.bytearray.micrecorder.encoder.WaveEncoder;
+
+		import flash.media.Sound;
+		import org.as3wavsound.WavSound;
+		import org.as3wavsound.WavSoundChannel;
+
+		// variables
+		private var _mic:Microphone = Microphone.getMicrophone();
+		private var _waveEncoder:WaveEncoder = new WaveEncoder();
+		private var _recorder:MicRecorder = new MicRecorder(_waveEncoder);
+		private var _maxTime:Number = 10.0;
+		
+		protected function init():void {
+			_recorder.addEventListener(RecordingEvent.RECORDING, recording);
+      		_recorder.addEventListener(Event.COMPLETE, recordComplete);
+      		stopBtn.enabled = false;
+    	}
+    	private function recording(e:RecordingEvent):void
+		{
+			// stop recording after maxtime
+			var currentTime:int = Math.floor(e.time / 1000);			
+			if(currentTime == _maxTime) {
+				if(_recorder != null) {
+					trace("maxtime is reached");
+					_recorder.stop();
+					stopBtn.enabled = false;
+				}
+			}
+		}
+    	private function recordComplete(e:Event):void {
+    		var wavSound:WavSound =  new WavSound(_recorder.output);
+			wavSound.play();
+    	}
+		public function recordButtonClicked(clickEvent:Event):void {
+			trace("record button clicked");
+			if(_mic != null) {
+				_recorder.record();
+				stopBtn.enabled = true;
+			}
+		}
+		public function stopButtonClicked(clickEvent:Event):void {
+			trace("stop button clicked");
+			if(_recorder != null) {
+				_recorder.stop();
+				stopBtn.enabled = false;
+			}
+		}
+	]]>
+	</fx:Script>
+	<s:layout>
+    	<s:HorizontalLayout/>
+	</s:layout>
+	<s:Button id="recordBtn" label="Record" click="recordButtonClicked(event)"/>
+	<s:Button id="stopBtn" label="Stop" click="stopButtonClicked(event)"/>
+
+</s:Application>
